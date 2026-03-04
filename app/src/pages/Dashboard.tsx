@@ -140,6 +140,13 @@ export default function Dashboard() {
       to: '/tools/gsc-visualizer',
       color: 'bg-emerald-500/10 text-emerald-400',
     },
+    {
+      title: 'Intent Reshaper',
+      description: 'Detect intent drift and reshape content to hold CTR',
+      icon: AlertCircle,
+      to: '/tools/intent-reshaper',
+      color: 'bg-amber-500/10 text-amber-400',
+    },
   ];
 
   return (
