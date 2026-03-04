@@ -1,5 +1,5 @@
 import { useContext, useMemo, useState } from 'react';
-import { Upload, Database, AlertCircle, Sparkles } from 'lucide-react';
+import { Upload, Database, AlertCircle, Sparkles, Copy } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
 import { GSCContext } from '@/App';
 import { buildCtrOptimizerRows, parseGscCsv } from '@/utils/gscData';
@@ -34,6 +34,28 @@ function getMetaSuggestions(row: CTROptimizerRow): string[] {
   ];
 }
 
+function buildNarratives(row: CTROptimizerRow) {
+  const gapPct = Math.max(0, row.ctrGap * 100);
+  const urgency = gapPct >= 5 ? 'High' : gapPct >= 2 ? 'Medium' : 'Low';
+  const positionBand = row.position <= 5 ? 'top-of-page' : row.position <= 12 ? 'mid-SERP' : 'lower-SERP';
+  const benefit = row.priority === 'High' ? 'win back high-value clicks' : 'lift engagement efficiently';
+
+  const titles = [
+    `${row.query} | ${urgency} CTR play to ${benefit}`,
+    `${row.query} — Beat ${positionBand} slump with clearer value`,
+    `${row.query}: Close ${gapPct.toFixed(1)}% CTR gap with sharper promise`,
+  ];
+
+  const metas = [
+    `Searchers for "${row.query}" want quick proof. Lead with outcome + social proof to recover the ${gapPct.toFixed(1)}% CTR gap and ${benefit}.`,
+    `Tighten first 120 chars for "${row.query}": result → proof → recency. Suits position ${row.position.toFixed(
+      1,
+    )} to lift clicks without waiting for rank changes.`,
+  ];
+
+  return { titles, metas, gapPct, urgency };
+}
+
 export default function CTROptimizer() {
   const { gscRows, setGscRows, gscSource, setGscSource } = useContext(GSCContext);
   const [workingRows, setWorkingRows] = useState<GSCPerformanceRow[]>(() => gscRows ?? []);
@@ -44,6 +66,7 @@ export default function CTROptimizer() {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedRow, setSelectedRow] = useState<CTROptimizerRow | null>(null);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
 
   const rows = useMemo(() => buildCtrOptimizerRows(workingRows), [workingRows]);
 
@@ -57,6 +80,16 @@ export default function CTROptimizer() {
     setWorkingRows(gscRows);
     setSourceLabel(`Using GSC Visualizer session data (${gscSource || 'uploaded CSV'})`);
     setSelectedRow(null);
+  };
+
+  const handleCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(text);
+      window.setTimeout(() => setCopiedText((current) => (current === text ? null : current)), 1200);
+    } catch (error) {
+      console.error('Copy failed:', error);
+    }
   };
 
   const handleCsvUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,6 +225,66 @@ export default function CTROptimizer() {
                       </li>
                     ))}
                   </ul>
+                </div>
+
+                {/* CTR Narrative Generator */}
+                <div className="pt-4 border-t border-white/5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-300" />
+                    <h4 className="text-base font-semibold text-text-primary">CTR Narrative Generator</h4>
+                  </div>
+                  {(() => {
+                    const narratives = buildNarratives(selectedRow);
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-text-secondary text-sm">AI title narratives</p>
+                            <span className="text-xs text-text-secondary">Gap: {narratives.gapPct.toFixed(1)}%</span>
+                          </div>
+                          {narratives.titles.map((title) => (
+                            <div key={title} className="flex items-start gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(title)}
+                                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                                aria-label="Copy title"
+                              >
+                                <Copy className="w-4 h-4 text-text-secondary" />
+                              </button>
+                              <p className="text-text-primary text-sm leading-5">
+                                {title}
+                                {copiedText === title && <span className="text-lime text-xs ml-2">copied</span>}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="bg-white/[0.02] border border-white/5 rounded-xl p-4 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-text-secondary text-sm">AI meta narratives</p>
+                            <span className="text-xs text-text-secondary">Urgency: {narratives.urgency}</span>
+                          </div>
+                          {narratives.metas.map((meta) => (
+                            <div key={meta} className="flex items-start gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(meta)}
+                                className="p-2 rounded-md hover:bg-white/10 transition-colors"
+                                aria-label="Copy meta"
+                              >
+                                <Copy className="w-4 h-4 text-text-secondary" />
+                              </button>
+                              <p className="text-text-primary text-sm leading-5">
+                                {meta}
+                                {copiedText === meta && <span className="text-lime text-xs ml-2">copied</span>}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
