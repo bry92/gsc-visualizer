@@ -13,6 +13,7 @@ import GSCDataVisualizer from './tools/GSCDataVisualizer';
 import CTROptimizer from './tools/CTROptimizer';
 import QueryIntentClassifier from './tools/QueryIntentClassifier';
 import IntentReshaper from './tools/IntentReshaper';
+import Settings from './pages/Settings';
 import type { GSCPerformanceRow } from './types';
 import './App.css';
 
@@ -48,7 +49,7 @@ export const GSCContext = createContext<{
 });
 
 function App() {
-  const [isDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(true);
   const [lastAudit, setLastAudit] = useState<any>(null);
   const [auditHistory, setAuditHistory] = useState<any[]>([]);
   const [gscRows, setGscRows] = useState<GSCPerformanceRow[] | null>(null);
@@ -59,7 +60,7 @@ function App() {
   };
 
   const toggleTheme = () => {
-    // Theme toggle functionality if needed later
+    setIsDarkMode((prev) => !prev);
   };
 
   return (
@@ -81,6 +82,7 @@ function App() {
               <Route path="/tools/ctr-optimizer" element={<CTROptimizer />} />
               <Route path="/tools/intent-classifier" element={<QueryIntentClassifier />} />
               <Route path="/tools/intent-reshaper" element={<IntentReshaper />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>

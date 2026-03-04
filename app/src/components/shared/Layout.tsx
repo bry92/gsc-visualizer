@@ -5,6 +5,7 @@ import {
   Activity, FileText, Menu, ChevronDown, LogOut,
   Settings, Bell, User
 } from 'lucide-react';
+import { Link as RouterLink } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -86,14 +87,18 @@ export default function Layout({ children, title }: LayoutProps) {
         </nav>
 
         {/* Bottom Actions */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5">
-          <button className="flex items-center gap-3 px-4 py-3 w-full text-text-secondary hover:text-text-primary hover:bg-white/5 rounded-xl transition-all">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 space-y-2">
+          <RouterLink
+            to="/settings"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 px-4 py-3 w-full text-text-secondary hover:text-text-primary hover:bg-white/5 rounded-xl transition-all"
+          >
             <Settings className="w-5 h-5" />
             <span className="font-medium">Settings</span>
-          </button>
+          </RouterLink>
           <button 
             onClick={() => navigate('/')}
-            className="flex items-center gap-3 px-4 py-3 w-full text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all mt-1"
+            className="flex items-center gap-3 px-4 py-3 w-full text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Exit Toolkit</span>
@@ -142,10 +147,14 @@ export default function Layout({ children, title }: LayoutProps) {
                     <p className="text-text-primary font-medium">Demo User</p>
                     <p className="text-text-secondary text-sm">user@example.com</p>
                   </div>
-                  <button className="w-full px-4 py-3 text-left text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors flex items-center gap-2">
+                  <RouterLink
+                    to="/settings"
+                    onClick={() => setProfileOpen(false)}
+                    className="w-full px-4 py-3 text-left text-text-secondary hover:text-text-primary hover:bg-white/5 transition-colors flex items-center gap-2"
+                  >
                     <Settings className="w-4 h-4" />
-                    Settings
-                  </button>
+                    <span className="w-full text-left">Settings</span>
+                  </RouterLink>
                   <button 
                     onClick={() => navigate('/')}
                     className="w-full px-4 py-3 text-left text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
