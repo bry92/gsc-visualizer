@@ -21,6 +21,7 @@ const navItems = [
   { path: '/tools/site-health', icon: Activity, label: 'Site Health' },
   { path: '/tools/gsc-visualizer', icon: BarChart2, label: 'GSC Visualizer' },
   { path: '/tools/ctr-optimizer', icon: TrendingUp, label: 'CTR Optimizer' },
+  { path: '/tools/intent-reshaper', icon: FileText, label: 'Intent Reshaper' },
   { path: '/tools/intent-classifier', icon: FileText, label: 'Intent Classifier' },
   { path: '/tools/reports', icon: FileText, label: 'Reports' },
 ];

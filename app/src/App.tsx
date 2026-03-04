@@ -12,6 +12,7 @@ import Reports from './tools/Reports';
 import GSCDataVisualizer from './tools/GSCDataVisualizer';
 import CTROptimizer from './tools/CTROptimizer';
 import QueryIntentClassifier from './tools/QueryIntentClassifier';
+import IntentReshaper from './tools/IntentReshaper';
 import type { GSCPerformanceRow } from './types';
 import './App.css';
 
@@ -79,6 +80,7 @@ function App() {
               <Route path="/tools/gsc-visualizer" element={<GSCDataVisualizer />} />
               <Route path="/tools/ctr-optimizer" element={<CTROptimizer />} />
               <Route path="/tools/intent-classifier" element={<QueryIntentClassifier />} />
+              <Route path="/tools/intent-reshaper" element={<IntentReshaper />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
