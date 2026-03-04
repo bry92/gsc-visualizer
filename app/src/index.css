@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 14% 4%;
+    --foreground: 230 50% 97%;
+    --card: 220 18% 8%;
+    --card-foreground: 230 50% 97%;
+    --popover: 220 18% 8%;
+    --popover-foreground: 230 50% 97%;
+    --primary: 82 100% 59%;
+    --primary-foreground: 220 14% 4%;
+    --secondary: 220 14% 10%;
+    --secondary-foreground: 230 50% 97%;
+    --muted: 220 14% 15%;
+    --muted-foreground: 230 10% 68%;
+    --accent: 82 100% 59%;
+    --accent-foreground: 220 14% 4%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 230 20% 15%;
+    --input: 230 20% 15%;
+    --ring: 82 100% 59%;
+    --radius: 0.625rem;
+    --sidebar-background: 220 14% 6%;
+    --sidebar-foreground: 230 50% 97%;
+    --sidebar-primary: 82 100% 59%;
+    --sidebar-primary-foreground: 220 14% 4%;
+    --sidebar-accent: 220 14% 12%;
+    --sidebar-accent-foreground: 230 50% 97%;
+    --sidebar-border: 230 20% 15%;
+    --sidebar-ring: 82 100% 59%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+  
+  body {
+    @apply bg-dark text-text-primary font-body antialiased;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .section-pinned {
+    @apply relative w-screen h-screen overflow-hidden;
+  }
+  
+  .bg-gradient-overlay {
+    background: linear-gradient(180deg, rgba(11,13,16,0.35) 0%, rgba(11,13,16,0.75) 100%);
+  }
+  
+  .bg-gradient-overlay-strong {
+    background: linear-gradient(180deg, rgba(11,13,16,0.5) 0%, rgba(11,13,16,0.85) 100%);
+  }
+  
+  .card-dark {
+    @apply backdrop-blur-xl rounded-3xl border border-white/[0.08] shadow-card;
+    background: rgba(18, 21, 28, 0.72);
+  }
+  
+  .card-dark-solid {
+    @apply bg-dark-light rounded-3xl border border-white/[0.08] shadow-card;
+  }
+  
+  .text-micro {
+    @apply text-xs font-semibold tracking-[0.12em] uppercase;
+  }
+  
+  .btn-lime {
+    @apply bg-lime text-dark font-semibold px-6 py-3 rounded-xl 
+           transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.01]
+           focus:outline-none focus:ring-2 focus:ring-lime/50;
+  }
+  
+  .btn-outline {
+    @apply border border-white/20 text-text-primary px-6 py-3 rounded-xl
+           transition-all duration-200 hover:bg-white/5 hover:border-white/30;
+  }
+  
+  .input-dark {
+    @apply bg-dark/60 border border-white/10 rounded-xl px-4 py-3 
+           text-text-primary placeholder:text-text-secondary/50
+           focus:outline-none focus:border-lime/50 focus:ring-2 focus:ring-lime/20
+           transition-all duration-200;
+  }
+  
+  .heading-display {
+    @apply font-display font-black uppercase tracking-tight leading-[0.92];
+    font-size: clamp(44px, 6vw, 84px);
+  }
+  
+  .heading-section {
+    @apply font-display font-bold text-3xl md:text-4xl lg:text-5xl text-text-primary;
+  }
+  
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    z-index: 9999;
+  }
+  
+  .score-ring {
+    transform: rotate(-90deg);
+  }
+  
+  .score-ring-circle {
+    fill: none;
+    stroke: rgba(255,255,255,0.08);
+    stroke-width: 8;
+  }
+  
+  .score-ring-progress {
+    fill: none;
+    stroke: #B6FF2E;
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 283;
+    transition: stroke-dashoffset 1.5s ease-out;
+  }
+  
+  .severity-high {
+    @apply border-lime text-lime;
+  }
+  
+  .severity-medium {
+    @apply border-text-secondary text-text-secondary;
+  }
+  
+  .severity-low {
+    @apply border-white/10 text-text-secondary/70 bg-white/5;
+  }
+  
+  .metric-chip {
+    @apply bg-dark/60 border border-white/[0.08] rounded-2xl p-4 
+           flex flex-col items-center justify-center gap-2;
+  }
+  
+  .chart-gradient {
+    fill: url(#chartGradient);
+  }
+  
+  .nav-link {
+    @apply text-text-secondary hover:text-text-primary transition-colors duration-200 text-sm font-medium;
+  }
+  
+  .testimonial-card {
+    @apply bg-dark-light border border-white/[0.08] rounded-3xl p-6 md:p-8;
+  }
+  
+  .pricing-card {
+    @apply bg-dark-light border border-white/[0.08] rounded-3xl p-6 md:p-8 
+           flex flex-col gap-6 transition-all duration-300 hover:-translate-y-1;
+  }
+  
+  .pricing-card-highlight {
+    @apply border-lime/50 shadow-glow;
+  }
+  
+  .faq-item {
+    @apply bg-dark-light border border-white/[0.08] rounded-2xl overflow-hidden
+           transition-all duration-200 hover:border-white/15;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0D10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A1E28;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2A2E38;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(182, 255, 46, 0.3);
+  color: #F4F6FF;
+}
