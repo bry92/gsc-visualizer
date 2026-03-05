@@ -1,0 +1,65 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import LandingPage from './pages/LandingPage';
+import Dashboard from './pages/Dashboard';
+import SiteAudit from './tools/SiteAudit';
+import KeywordResearch from './tools/KeywordResearch';
+import BacklinkAnalyzer from './tools/BacklinkAnalyzer';
+import CompetitorAnalysis from './tools/CompetitorAnalysis';
+import RankTracker from './tools/RankTracker';
+import SiteHealth from './tools/SiteHealth';
+import Reports from './tools/Reports';
+import GSCDataVisualizer from './tools/GSCDataVisualizer';
+import CTROptimizer from './tools/CTROptimizer';
+import QueryIntentClassifier from './tools/QueryIntentClassifier';
+import IntentReshaper from './tools/IntentReshaper';
+import Settings from './pages/Settings';
+import type { GSCPerformanceRow, SEOAuditResult } from './types';
+import { AuditContext, GSCContext, ThemeContext } from './contexts/app-context';
+import './App.css';
+
+function App() {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [lastAudit, setLastAudit] = useState<SEOAuditResult | null>(null);
+  const [auditHistory, setAuditHistory] = useState<SEOAuditResult[]>([]);
+  const [gscRows, setGscRows] = useState<GSCPerformanceRow[] | null>(null);
+  const [gscSource, setGscSource] = useState<string | null>(null);
+
+  const addToHistory = (audit: SEOAuditResult) => {
+    setAuditHistory(prev => [audit, ...prev].slice(0, 10));
+  };
+
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
+  return (
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+      <AuditContext.Provider value={{ lastAudit, setLastAudit, auditHistory, addToHistory }}>
+        <GSCContext.Provider value={{ gscRows, setGscRows, gscSource, setGscSource }}>
+          <div className={`min-h-screen ${isDarkMode ? 'bg-dark' : 'bg-white'}`}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/tools/audit" element={<SiteAudit />} />
+              <Route path="/tools/keywords" element={<KeywordResearch />} />
+              <Route path="/tools/backlinks" element={<BacklinkAnalyzer />} />
+              <Route path="/tools/competitors" element={<CompetitorAnalysis />} />
+              <Route path="/tools/rank-tracker" element={<RankTracker />} />
+              <Route path="/tools/site-health" element={<SiteHealth />} />
+              <Route path="/tools/reports" element={<Reports />} />
+              <Route path="/tools/gsc-visualizer" element={<GSCDataVisualizer />} />
+              <Route path="/tools/ctr-optimizer" element={<CTROptimizer />} />
+              <Route path="/tools/intent-classifier" element={<QueryIntentClassifier />} />
+              <Route path="/tools/intent-reshaper" element={<IntentReshaper />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </GSCContext.Provider>
+      </AuditContext.Provider>
+    </ThemeContext.Provider>
+  );
+}
+
+export default App;

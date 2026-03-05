@@ -1,0 +1,210 @@
+/* Landing Page Specific Styles */
+
+.section-pinned {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.bg-gradient-overlay {
+  background: linear-gradient(180deg, rgba(11,13,16,0.35) 0%, rgba(11,13,16,0.75) 100%);
+}
+
+.card-dark {
+  background: rgba(18, 21, 28, 0.72);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(244, 246, 255, 0.08);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.card-dark-solid {
+  background: #12151C;
+  border-radius: 24px;
+  border: 1px solid rgba(244, 246, 255, 0.08);
+}
+
+.text-micro {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.btn-lime {
+  background: #B6FF2E;
+  color: #0B0D10;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-lime:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.btn-lime:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #F4F6FF;
+  padding: 12px 24px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.input-dark {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #F4F6FF;
+  transition: all 0.2s ease;
+}
+
+.input-dark::placeholder {
+  color: rgba(166, 169, 182, 0.5);
+}
+
+.input-dark:focus {
+  outline: none;
+  border-color: rgba(182, 255, 46, 0.5);
+  box-shadow: 0 0 0 3px rgba(182, 255, 46, 0.15);
+}
+
+.heading-display {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.92;
+  font-size: clamp(44px, 6vw, 84px);
+}
+
+.heading-section {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: #F4F6FF;
+}
+
+.nav-link {
+  color: #A6A9B6;
+  transition: color 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #F4F6FF;
+}
+
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 9999;
+}
+
+.score-ring {
+  transform: rotate(-90deg);
+}
+
+.score-ring-circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 8;
+}
+
+.score-ring-progress {
+  fill: none;
+  stroke: #B6FF2E;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.5s ease-out;
+}
+
+.pricing-card {
+  background: #12151C;
+  border: 1px solid rgba(244, 246, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  transition: all 0.3s ease;
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
+}
+
+.pricing-card-highlight {
+  border-color: rgba(182, 255, 46, 0.3);
+  box-shadow: 0 0 40px rgba(182, 255, 46, 0.1);
+}
+
+.faq-item {
+  background: #12151C;
+  border: 1px solid rgba(244, 246, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0D10;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A1E28;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2A2E38;
+}
+
+/* Selection */
+::selection {
+  background: rgba(182, 255, 46, 0.3);
+  color: #F4F6FF;
+}
