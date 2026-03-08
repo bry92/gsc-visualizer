@@ -1,8 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import type { Session } from '@supabase/supabase-js';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -21,7 +26,7 @@ import Settings from './pages/Settings';
 import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
-import { supabase } from './lib/supabase';
+import { auth, isFirebaseConfigured } from './lib/firebase';
 import './App.css';
 
 const ACCOUNT_PLAN_STORAGE_KEY = 'seo-pro-plan';
@@ -47,40 +52,22 @@ function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlanState] = useState<AccountPlan>(() => getStoredPlan());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    const syncAuthState = (session: Session | null) => {
-      const user = session?.user ?? null;
+    if (!isFirebaseConfigured || !auth) {
+      setAuthLoading(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(Boolean(user));
-      setUserId(user?.id ?? null);
+      setUserId(user?.uid ?? null);
       setUserEmail(user?.email ?? null);
       setAuthLoading(false);
-    };
-
-    const loadSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        setIsAuthenticated(false);
-        setUserId(null);
-        setUserEmail(null);
-        setAuthLoading(false);
-        return;
-      }
-
-      syncAuthState(data.session);
-    };
-
-    void loadSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      syncAuthState(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -111,32 +98,27 @@ function App() {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw error;
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
+
+    await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
   const register = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw error;
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
+
+    await createUserWithEmailAndPassword(auth, email, password);
   }, []);
 
   const logout = useCallback(async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      throw error;
+    if (!isFirebaseConfigured || !auth) {
+      return;
     }
+
+    await signOut(auth);
   }, []);
 
   const setUserPlan = useCallback((plan: AccountPlan) => {
