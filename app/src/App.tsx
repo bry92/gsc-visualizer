@@ -1,12 +1,12 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
+import type { FirebaseError } from 'firebase/app';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -26,9 +26,56 @@ import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
 import { firebaseAuth, isFirebaseConfigured } from './lib/firebase';
+import { applySeo } from './utils/seo';
 import './App.css';
 
 const ACCOUNT_PLAN_STORAGE_KEY = 'seo-pro-plan';
+const LOCAL_AUTH_STORAGE_KEY = 'seo-pro-local-auth';
+
+type LocalAuthSession = {
+  email: string;
+  id: string;
+};
+
+function readLocalAuthSession(): LocalAuthSession | null {
+  if (typeof window === 'undefined') return null;
+
+  const raw = window.localStorage.getItem(LOCAL_AUTH_STORAGE_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<LocalAuthSession>;
+    if (!parsed.email || !parsed.id) {
+      return null;
+    }
+    return {
+      email: parsed.email,
+      id: parsed.id,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalAuthSession(email: string) {
+  if (typeof window === 'undefined') return;
+
+  const session: LocalAuthSession = {
+    email,
+    id: `local-${email}`,
+  };
+  window.localStorage.setItem(LOCAL_AUTH_STORAGE_KEY, JSON.stringify(session));
+}
+
+function clearLocalAuthSession() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(LOCAL_AUTH_STORAGE_KEY);
+}
+
+function isAuthConfigurationError(error: unknown): boolean {
+  const code = (error as FirebaseError | { code?: string })?.code;
+  return code === 'auth/configuration-not-found';
+}
 
 function getStoredPlan(): AccountPlan {
   if (typeof window === 'undefined') return 'free';
@@ -42,19 +89,25 @@ function getStoredPlan(): AccountPlan {
 }
 
 function App() {
+  const location = useLocation();
+  const localSession = readLocalAuthSession();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [lastAudit, setLastAudit] = useState<SEOAuditResult | null>(null);
   const [auditHistory, setAuditHistory] = useState<SEOAuditResult[]>([]);
   const [gscRows, setGscRows] = useState<GSCPerformanceRow[] | null>(null);
   const [gscSource, setGscSource] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(localSession?.email ?? null);
+  const [userId, setUserId] = useState<string | null>(localSession?.id ?? null);
   const [userPlan, setUserPlanState] = useState<AccountPlan>(() => getStoredPlan());
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(Boolean(localSession));
+  const [isUsingLocalAuth, setIsUsingLocalAuth] = useState<boolean>(Boolean(localSession));
   const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !firebaseAuth) return;
+    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
+      setAuthLoading(false);
+      return;
+    }
 
     const unsub = onAuthStateChanged(firebaseAuth, (user) => {
       setIsAuthenticated(Boolean(user));
@@ -63,7 +116,11 @@ function App() {
       setAuthLoading(false);
     });
     return () => unsub();
-  }, []);
+  }, [isUsingLocalAuth]);
+
+  useEffect(() => {
+    applySeo(location.pathname);
+  }, [location.pathname]);
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -93,23 +150,68 @@ function App() {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth) {
-      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
+    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
+      setIsUsingLocalAuth(true);
+      saveLocalAuthSession(email);
+      setIsAuthenticated(true);
+      setUserEmail(email);
+      setUserId(`local-${email}`);
+      return;
     }
-    await signInWithEmailAndPassword(firebaseAuth, email, password);
-  }, []);
+
+    try {
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+      if (isAuthConfigurationError(error)) {
+        setIsUsingLocalAuth(true);
+        saveLocalAuthSession(email);
+        setIsAuthenticated(true);
+        setUserEmail(email);
+        setUserId(`local-${email}`);
+        return;
+      }
+      throw error;
+    }
+  }, [isUsingLocalAuth]);
 
   const register = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth) {
-      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
+    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
+      setIsUsingLocalAuth(true);
+      saveLocalAuthSession(email);
+      setIsAuthenticated(true);
+      setUserEmail(email);
+      setUserId(`local-${email}`);
+      return;
     }
-    await createUserWithEmailAndPassword(firebaseAuth, email, password);
-  }, []);
+
+    try {
+      await createUserWithEmailAndPassword(firebaseAuth, email, password);
+    } catch (error) {
+      if (isAuthConfigurationError(error)) {
+        setIsUsingLocalAuth(true);
+        saveLocalAuthSession(email);
+        setIsAuthenticated(true);
+        setUserEmail(email);
+        setUserId(`local-${email}`);
+        return;
+      }
+      throw error;
+    }
+  }, [isUsingLocalAuth]);
 
   const logout = useCallback(async () => {
-    if (!firebaseAuth) return;
+    clearLocalAuthSession();
+
+    if (isUsingLocalAuth || !firebaseAuth) {
+      setIsUsingLocalAuth(false);
+      setIsAuthenticated(false);
+      setUserEmail(null);
+      setUserId(null);
+      return;
+    }
+
     await signOut(firebaseAuth);
-  }, []);
+  }, [isUsingLocalAuth]);
 
   const setUserPlan = useCallback((plan: AccountPlan) => {
     setUserPlanState(plan);
