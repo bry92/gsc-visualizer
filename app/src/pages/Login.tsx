@@ -38,7 +38,6 @@ export default function Login() {
       return;
     }
 
-    // Demo auth flow: validate basic shape and persist session.
     if (!email.includes('@') || password.length < 6) {
       setError('Use a valid email and a password with at least 6 characters.');
       return;

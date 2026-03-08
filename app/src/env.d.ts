@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_STRIPE_PAYMENT_LINK_PRO?: string;
   readonly VITE_STRIPE_PAYMENT_LINK_AGENCY?: string;
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_FIREBASE_API_KEY?: string;
   readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
   readonly VITE_FIREBASE_PROJECT_ID?: string;
