@@ -1,7 +1,8 @@
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Layout from '@/components/shared/Layout';
-import { ThemeContext } from '@/contexts/app-context';
+import type { AccountPlan } from '@/contexts/app-context';
+import { AuthContext, ThemeContext } from '@/contexts/app-context';
 import { startStripeCheckout } from '@/utils/stripeCheckout';
 
 type AccountState = {
@@ -16,16 +17,23 @@ type AccountState = {
   language: string;
 };
 
+function formatPlanLabel(plan: AccountPlan) {
+  if (plan === 'agency') return 'Agency';
+  if (plan === 'pro') return 'Pro';
+  return 'Free';
+}
+
 export default function Settings() {
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const { user, userEmail, setUserPlan } = useContext(AuthContext);
   const location = useLocation();
   const [account, setAccount] = useState<AccountState>({
     name: '',
-    email: '',
+    email: userEmail ?? '',
     apiKey: '',
     gscConnected: false,
     gaConnected: false,
-    plan: 'Pro Trial',
+    plan: formatPlanLabel(user?.plan ?? 'free'),
     exportFormat: 'csv',
     locale: 'United States',
     language: 'English',
@@ -36,6 +44,22 @@ export default function Settings() {
 
   const checkoutStatus = new URLSearchParams(location.search).get('checkout');
   const checkoutPlanFromUrl = new URLSearchParams(location.search).get('plan');
+
+  useEffect(() => {
+    setAccount((prev) => ({
+      ...prev,
+      email: userEmail ?? prev.email,
+      plan: formatPlanLabel(user?.plan ?? 'free'),
+    }));
+  }, [user?.plan, userEmail]);
+
+  useEffect(() => {
+    if (checkoutStatus !== 'success') return;
+    if (checkoutPlanFromUrl !== 'pro' && checkoutPlanFromUrl !== 'agency') return;
+
+    setUserPlan(checkoutPlanFromUrl);
+    setBillingMessage(`Your ${formatPlanLabel(checkoutPlanFromUrl)} plan is now active on this device.`);
+  }, [checkoutPlanFromUrl, checkoutStatus, setUserPlan]);
 
   const handleChange = (field: keyof AccountState, value: AccountState[keyof AccountState]) => {
     setAccount((prev) => ({ ...prev, [field]: value }));

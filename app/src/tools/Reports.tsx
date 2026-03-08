@@ -5,7 +5,7 @@ import {
   FileSpreadsheet, FileJson, FileCode
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
-import { AuditContext } from '@/contexts/app-context';
+import { AuditContext, AuthContext } from '@/contexts/app-context';
 
 interface Report {
   id: string;
@@ -22,6 +22,7 @@ type ReportFormat = Report['format'];
 
 export default function Reports() {
   const { auditHistory } = useContext(AuditContext);
+  const { isPro } = useContext(AuthContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [reports, setReports] = useState<Report[]>([
@@ -139,10 +140,14 @@ export default function Reports() {
           <div>
             <h2 className="text-xl font-semibold text-text-primary">SEO Reports</h2>
             <p className="text-text-secondary text-sm">Generate, download, and manage your SEO reports</p>
+            {!isPro && (
+              <p className="mt-2 text-sm text-text-secondary">Pro subscription required to generate and export reports.</p>
+            )}
           </div>
           <button 
             onClick={() => setShowGenerateModal(true)}
-            className="btn-lime flex items-center gap-2"
+            disabled={!isPro}
+            className="btn-lime flex items-center gap-2 disabled:opacity-50"
           >
             <FileText className="w-4 h-4" />
             Generate Report
@@ -230,7 +235,8 @@ export default function Reports() {
                             <Eye className="w-4 h-4 text-text-secondary" />
                           </button>
                           <button 
-                            className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                            disabled={!isPro}
+                            className="p-2 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
                             title="Download"
                           >
                             <Download className="w-4 h-4 text-text-secondary" />
@@ -268,7 +274,8 @@ export default function Reports() {
             </p>
             <button 
               onClick={() => setShowGenerateModal(true)}
-              className="btn-lime"
+              disabled={!isPro}
+              className="btn-lime disabled:opacity-50"
             >
               Generate First Report
             </button>
@@ -305,11 +312,11 @@ export default function Reports() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button className="btn-outline text-sm flex items-center gap-2">
+                    <button className="btn-outline text-sm flex items-center gap-2 disabled:opacity-50" disabled={!isPro}>
                       <Download className="w-4 h-4" />
                       PDF
                     </button>
-                    <button className="btn-outline text-sm flex items-center gap-2">
+                    <button className="btn-outline text-sm flex items-center gap-2 disabled:opacity-50" disabled={!isPro}>
                       <Download className="w-4 h-4" />
                       CSV
                     </button>
@@ -321,7 +328,7 @@ export default function Reports() {
         )}
 
         {/* Generate Report Modal */}
-        {showGenerateModal && (
+        {showGenerateModal && isPro && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div 
               className="absolute inset-0 bg-dark/80 backdrop-blur-sm"

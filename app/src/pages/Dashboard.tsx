@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { memo, useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Search, TrendingUp, Link2, Users, Activity, 
@@ -6,7 +6,8 @@ import {
   Zap, AlertCircle, CheckCircle, BarChart3
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
-import { AuditContext } from '@/contexts/app-context';
+import ProGate from '@/components/ProGate';
+import { AuditContext, AuthContext } from '@/contexts/app-context';
 import { getSiteHealthData } from '@/utils/seoAnalyzer';
 import type { SiteHealthData } from '@/types';
 
@@ -19,7 +20,81 @@ interface StatCardProps {
   color?: 'lime' | 'blue' | 'purple' | 'orange';
 }
 
-function StatCard({ title, value, change, icon: Icon, trend = 'neutral', color = 'lime' }: StatCardProps) {
+type ToolDefinition = ToolCardProps & {
+  proOnly?: boolean;
+};
+
+const tools: ToolDefinition[] = [
+  {
+    title: 'Site Audit',
+    description: 'Comprehensive SEO analysis of your website',
+    icon: Search,
+    to: '/tools/audit',
+    color: 'bg-lime/10 text-lime',
+  },
+  {
+    title: 'Keyword Research',
+    description: 'Find high-value keywords for your content',
+    icon: TrendingUp,
+    to: '/tools/keywords',
+    color: 'bg-blue-500/10 text-blue-400',
+    proOnly: true,
+  },
+  {
+    title: 'Backlink Analyzer',
+    description: 'Analyze your backlink profile and authority',
+    icon: Link2,
+    to: '/tools/backlinks',
+    color: 'bg-purple-500/10 text-purple-400',
+    proOnly: true,
+  },
+  {
+    title: 'Competitor Analysis',
+    description: 'Compare your site with competitors',
+    icon: Users,
+    to: '/tools/competitors',
+    color: 'bg-orange-500/10 text-orange-400',
+    proOnly: true,
+  },
+  {
+    title: 'Rank Tracker',
+    description: 'Monitor your keyword rankings over time',
+    icon: BarChart3,
+    to: '/tools/rank-tracker',
+    color: 'bg-pink-500/10 text-pink-400',
+    proOnly: true,
+  },
+  {
+    title: 'Site Health',
+    description: 'Monitor site performance and issues',
+    icon: Activity,
+    to: '/tools/site-health',
+    color: 'bg-cyan-500/10 text-cyan-400',
+  },
+  {
+    title: 'GSC Data Visualizer',
+    description: 'Upload GSC exports and visualize clicks, impressions, CTR, and position',
+    icon: Globe,
+    to: '/tools/gsc-visualizer',
+    color: 'bg-emerald-500/10 text-emerald-400',
+  },
+  {
+    title: 'Intent Reshaper',
+    description: 'Detect intent drift and reshape content to hold CTR',
+    icon: AlertCircle,
+    to: '/tools/intent-reshaper',
+    color: 'bg-amber-500/10 text-amber-400',
+  },
+] as const;
+
+const StatCard = memo(function StatCard({
+  title,
+  value,
+  change,
+  icon: Icon,
+  trend = 'neutral',
+  color = 'lime',
+}: StatCardProps) {
   const colorClasses = {
     lime: 'bg-lime/10 text-lime border-lime/20',
     blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -47,7 +122,7 @@ function StatCard({ title, value, change, icon: Icon, trend = 'neutral', color =
       <p className="text-2xl font-display font-bold text-text-primary">{value}</p>
     </div>
   );
-}
+});
 
 interface ToolCardProps {
   title: string;
@@ -57,7 +132,7 @@ interface ToolCardProps {
   color: string;
 }
 
-function ToolCard({ title, description, icon: Icon, to, color }: ToolCardProps) {
+const ToolCard = memo(function ToolCard({ title, description, icon: Icon, to, color }: ToolCardProps) {
   return (
     <Link 
       to={to}
@@ -72,10 +147,11 @@ function ToolCard({ title, description, icon: Icon, to, color }: ToolCardProps) 
       <p className="text-text-secondary text-sm">{description}</p>
     </Link>
   );
-}
+});
 
 export default function Dashboard() {
   const { lastAudit, auditHistory } = useContext(AuditContext);
+  const { isPro } = useContext(AuthContext);
   const [siteHealth, setSiteHealth] = useState<SiteHealthData | null>(null);
 
   useEffect(() => {
@@ -89,65 +165,6 @@ export default function Dashboard() {
     };
     fetchData();
   }, []);
-
-  const tools = [
-    {
-      title: 'Site Audit',
-      description: 'Comprehensive SEO analysis of your website',
-      icon: Search,
-      to: '/tools/audit',
-      color: 'bg-lime/10 text-lime',
-    },
-    {
-      title: 'Keyword Research',
-      description: 'Find high-value keywords for your content',
-      icon: TrendingUp,
-      to: '/tools/keywords',
-      color: 'bg-blue-500/10 text-blue-400',
-    },
-    {
-      title: 'Backlink Analyzer',
-      description: 'Analyze your backlink profile and authority',
-      icon: Link2,
-      to: '/tools/backlinks',
-      color: 'bg-purple-500/10 text-purple-400',
-    },
-    {
-      title: 'Competitor Analysis',
-      description: 'Compare your site with competitors',
-      icon: Users,
-      to: '/tools/competitors',
-      color: 'bg-orange-500/10 text-orange-400',
-    },
-    {
-      title: 'Rank Tracker',
-      description: 'Monitor your keyword rankings over time',
-      icon: BarChart3,
-      to: '/tools/rank-tracker',
-      color: 'bg-pink-500/10 text-pink-400',
-    },
-    {
-      title: 'Site Health',
-      description: 'Monitor site performance and issues',
-      icon: Activity,
-      to: '/tools/site-health',
-      color: 'bg-cyan-500/10 text-cyan-400',
-    },
-    {
-      title: 'GSC Data Visualizer',
-      description: 'Upload GSC exports and visualize clicks, impressions, CTR, and position',
-      icon: Globe,
-      to: '/tools/gsc-visualizer',
-      color: 'bg-emerald-500/10 text-emerald-400',
-    },
-    {
-      title: 'Intent Reshaper',
-      description: 'Detect intent drift and reshape content to hold CTR',
-      icon: AlertCircle,
-      to: '/tools/intent-reshaper',
-      color: 'bg-amber-500/10 text-amber-400',
-    },
-  ];
 
   return (
     <Layout title="Dashboard">
@@ -289,13 +306,22 @@ export default function Dashboard() {
 
         {/* Quick Access Tools */}
         <div>
-          <h3 className="text-lg font-semibold text-text-primary mb-4">SEO Tools</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tools.map((tool) => (
-              <ToolCard key={tool.title} {...tool} />
-            ))}
+            <h3 className="text-lg font-semibold text-text-primary mb-4">SEO Tools</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tools.map((tool) => {
+                const card = <ToolCard key={tool.title} {...tool} />;
+                if (!tool.proOnly) {
+                  return card;
+                }
+
+                return (
+                  <ProGate key={tool.title} isPro={isPro}>
+                    {card}
+                  </ProGate>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
         {/* Recent Activity */}
         {auditHistory.length > 0 && (

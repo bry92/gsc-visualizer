@@ -33,3 +33,14 @@ Frontend-only Google Search Console visualizer and CTR/intent toolkit built with
 - Subscription checkout is wired to:
   - Landing page pricing buttons (Pro/Agency)
   - Settings -> Subscription & Billing (`Get Pro Subscription`, `Get Agency Subscription`)
+
+## Firebase Auth
+- Copy `app/.env.example` to `app/.env` and set:
+  - `VITE_FIREBASE_API_KEY`
+  - `VITE_FIREBASE_AUTH_DOMAIN`
+  - `VITE_FIREBASE_PROJECT_ID`
+  - `VITE_FIREBASE_APP_ID`
+- In Firebase Console:
+  - Create/select your project
+  - Enable `Authentication -> Sign-in method -> Email/Password`
+  - Add your app domain to `Authentication -> Settings -> Authorized domains`

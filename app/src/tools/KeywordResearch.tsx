@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { 
   Search, TrendingUp, TrendingDown, Minus, Download, 
   Copy, Check, BarChart3, DollarSign, Target,
   ArrowUpRight, Filter
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
+import ProGate from '@/components/ProGate';
+import { AuthContext } from '@/contexts/app-context';
 import { getKeywordSuggestions } from '@/utils/seoAnalyzer';
 import type { KeywordSuggestion } from '@/types';
 
 export default function KeywordResearch() {
+  const { isPro } = useContext(AuthContext);
   const [seed, setSeed] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [keywords, setKeywords] = useState<KeywordSuggestion[]>([]);
@@ -69,7 +72,8 @@ export default function KeywordResearch() {
 
   return (
     <Layout title="Keyword Research">
-      <div className="space-y-6">
+      <ProGate isPro={isPro}>
+        <div className="space-y-6">
         {/* Search Section */}
         <div className="bg-dark-light border border-white/5 rounded-2xl p-6">
           <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
@@ -266,7 +270,8 @@ export default function KeywordResearch() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </ProGate>
     </Layout>
   );
 }
