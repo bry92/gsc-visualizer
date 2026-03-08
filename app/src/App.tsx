@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import SiteAudit from './tools/SiteAudit';
@@ -55,6 +56,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <SpeedInsights />
           </div>
         </GSCContext.Provider>
       </AuditContext.Provider>
