@@ -7,6 +7,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import type { FirebaseError } from 'firebase/app';
+import { Analytics } from '@vercel/analytics/react';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -261,6 +262,7 @@ function App() {
         <GSCContext.Provider value={gscContextValue}>
           <AuthContext.Provider value={authContextValue}>
             <div className={`min-h-screen ${isDarkMode ? 'bg-dark' : 'bg-white'}`}>
+              <Analytics />
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route
