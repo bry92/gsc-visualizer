@@ -12,6 +12,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@supabase/supabase-js": [
+        "./src/vendor/supabase-js.ts"
       ]
     },
     /* Bundler mode */

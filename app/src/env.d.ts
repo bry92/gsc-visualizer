@@ -1,6 +1,8 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY?: string;
   readonly VITE_STRIPE_PAYMENT_LINK_PRO?: string;
   readonly VITE_STRIPE_PAYMENT_LINK_AGENCY?: string;
   readonly VITE_FIREBASE_API_KEY?: string;

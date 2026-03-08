@@ -22,6 +22,7 @@ import CTROptimizer from './tools/CTROptimizer';
 import QueryIntentClassifier from './tools/QueryIntentClassifier';
 import IntentReshaper from './tools/IntentReshaper';
 import Settings from './pages/Settings';
+import Page from './pages/Page';
 import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
@@ -367,6 +368,15 @@ function App() {
                   element={
                     <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
                       <IntentReshaper />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/todos"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <Page />
                     </ProtectedRoute>
                   }
                 />

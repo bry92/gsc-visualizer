@@ -16,6 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@supabase/supabase-js": path.resolve(__dirname, "./src/vendor/supabase-js.ts"),
     },
   },
   build: {
