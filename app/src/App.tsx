@@ -1,5 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from 'firebase/auth';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
@@ -147,29 +154,134 @@ function App() {
   );
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <AuditContext.Provider value={{ lastAudit, setLastAudit, auditHistory, addToHistory }}>
-        <GSCContext.Provider value={{ gscRows, setGscRows, gscSource, setGscSource }}>
-          <div className={`min-h-screen ${isDarkMode ? 'bg-dark' : 'bg-white'}`}>
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tools/audit" element={<SiteAudit />} />
-              <Route path="/tools/keywords" element={<KeywordResearch />} />
-              <Route path="/tools/backlinks" element={<BacklinkAnalyzer />} />
-              <Route path="/tools/competitors" element={<CompetitorAnalysis />} />
-              <Route path="/tools/rank-tracker" element={<RankTracker />} />
-              <Route path="/tools/site-health" element={<SiteHealth />} />
-              <Route path="/tools/reports" element={<Reports />} />
-              <Route path="/tools/gsc-visualizer" element={<GSCDataVisualizer />} />
-              <Route path="/tools/ctr-optimizer" element={<CTROptimizer />} />
-              <Route path="/tools/intent-classifier" element={<QueryIntentClassifier />} />
-              <Route path="/tools/intent-reshaper" element={<IntentReshaper />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <SpeedInsights />
-          </div>
+    <ThemeContext.Provider value={themeContextValue}>
+      <AuditContext.Provider value={auditContextValue}>
+        <GSCContext.Provider value={gscContextValue}>
+          <AuthContext.Provider value={authContextValue}>
+            <div className={`min-h-screen ${isDarkMode ? 'bg-dark' : 'bg-white'}`}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route
+                  path="/login"
+                  element={
+                    authLoading ? (
+                      <FullScreenLoading />
+                    ) : isAuthenticated ? (
+                      <Navigate to="/dashboard" replace />
+                    ) : (
+                      <Login />
+                    )
+                  }
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/audit"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <SiteAudit />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/keywords"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <KeywordResearch />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/backlinks"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <BacklinkAnalyzer />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/competitors"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <CompetitorAnalysis />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/rank-tracker"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <RankTracker />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/site-health"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <SiteHealth />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/reports"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <Reports />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/gsc-visualizer"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <GSCDataVisualizer />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/ctr-optimizer"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <CTROptimizer />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/intent-classifier"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <QueryIntentClassifier />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/tools/intent-reshaper"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <IntentReshaper />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+              <SpeedInsights />
+            </div>
+          </AuthContext.Provider>
         </GSCContext.Provider>
       </AuditContext.Provider>
     </ThemeContext.Provider>
