@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,7 +17,7 @@ import './LandingPage.css';
 gsap.registerPlugin(ScrollTrigger);
 
 // Navigation Component
-const Navigation = ({ onStartAudit }: { onStartAudit: () => void }) => {
+const Navigation = memo(({ onStartAudit }: { onStartAudit: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -86,10 +86,10 @@ const Navigation = ({ onStartAudit }: { onStartAudit: () => void }) => {
       )}
     </nav>
   );
-};
+});
 
 // Hero Section
-const HeroSection = ({ onStartAudit }: { onStartAudit: () => void }) => {
+const HeroSection = memo(({ onStartAudit }: { onStartAudit: () => void }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -221,10 +221,10 @@ const HeroSection = ({ onStartAudit }: { onStartAudit: () => void }) => {
       </div>
     </section>
   );
-};
+});
 
 // Features Section
-const FeaturesSection = () => {
+const FeaturesSection = memo(() => {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   const features = [
@@ -314,10 +314,10 @@ const FeaturesSection = () => {
       </div>
     </section>
   );
-};
+});
 
 // Pricing Section
-const PricingSection = () => {
+const PricingSection = memo(() => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [checkoutPlan, setCheckoutPlan] = useState<'pro' | 'agency' | null>(null);
@@ -457,10 +457,10 @@ const PricingSection = () => {
       </div>
     </section>
   );
-};
+});
 
 // FAQ Section
-const FAQSection = () => {
+const FAQSection = memo(() => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -549,10 +549,10 @@ const FAQSection = () => {
       </div>
     </section>
   );
-};
+});
 
 // Footer
-const Footer = () => {
+const Footer = memo(() => {
   const navigate = useNavigate();
 
   return (
@@ -620,10 +620,10 @@ const Footer = () => {
       </div>
     </footer>
   );
-};
+});
 
 // Audit Modal
-const AuditModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+const AuditModal = memo(({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const [url, setUrl] = useState('');
   const [step, setStep] = useState<'input' | 'loading' | 'result'>('input');
   const [result, setResult] = useState<SEOAuditResult | null>(null);
@@ -761,11 +761,13 @@ const AuditModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
       </div>
     </div>
   );
-};
+});
 
 // Main Landing Page Component
 export default function LandingPage() {
   const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const handleOpenAudit = useCallback(() => setAuditModalOpen(true), []);
+  const handleCloseAudit = useCallback(() => setAuditModalOpen(false), []);
 
   // Global snap for pinned sections
   useEffect(() => {
@@ -813,17 +815,17 @@ export default function LandingPage() {
     <div className="relative">
       <div className="noise-overlay" />
       
-      <Navigation onStartAudit={() => setAuditModalOpen(true)} />
+      <Navigation onStartAudit={handleOpenAudit} />
       
       <main className="relative">
-        <HeroSection onStartAudit={() => setAuditModalOpen(true)} />
+        <HeroSection onStartAudit={handleOpenAudit} />
         <FeaturesSection />
         <PricingSection />
         <FAQSection />
         <Footer />
       </main>
       
-      <AuditModal isOpen={auditModalOpen} onClose={() => setAuditModalOpen(false)} />
+      <AuditModal isOpen={auditModalOpen} onClose={handleCloseAudit} />
     </div>
   );
 }

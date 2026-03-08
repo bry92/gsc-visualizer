@@ -5,9 +5,12 @@ import {
   ChevronDown, ChevronUp, BarChart3, Copy
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
-import { AuditContext } from '@/contexts/app-context';
+import { AuditContext, AuthContext } from '@/contexts/app-context';
 import { performSEOAudit } from '@/utils/seoAnalyzer';
 import type { SEOAuditResult, SEOIssue } from '@/types';
+
+const FREE_AUDIT_LIMIT = 3;
+const FREE_AUDIT_STORAGE_KEY = 'seo-free-audit-count';
 
 const categoryIcons: Record<string, React.ElementType> = {
   meta: FileText,
@@ -173,17 +176,27 @@ function getAISuggestionForIssue(issue: SEOIssue): AISuggestion {
 }
 
 export default function SiteAudit() {
+  const { isPro } = useContext(AuthContext);
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<SEOAuditResult | null>(null);
   const [expandedIssues, setExpandedIssues] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
   const [copiedSuggestionId, setCopiedSuggestionId] = useState<string | null>(null);
+  const [freeAuditCount, setFreeAuditCount] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+
+    const storedCount = window.localStorage.getItem(FREE_AUDIT_STORAGE_KEY);
+    const parsedCount = Number.parseInt(storedCount ?? '0', 10);
+    return Number.isNaN(parsedCount) ? 0 : parsedCount;
+  });
   const { setLastAudit, addToHistory } = useContext(AuditContext);
+  const freeAuditLimitReached = !isPro && freeAuditCount >= FREE_AUDIT_LIMIT;
+  const freeAuditsRemaining = Math.max(FREE_AUDIT_LIMIT - freeAuditCount, 0);
 
   const handleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!url) return;
+    if (!url || freeAuditLimitReached) return;
 
     setIsLoading(true);
     try {
@@ -191,6 +204,13 @@ export default function SiteAudit() {
       setResult(auditResult);
       setLastAudit(auditResult);
       addToHistory(auditResult);
+      if (!isPro) {
+        setFreeAuditCount((current) => {
+          const nextCount = current + 1;
+          window.localStorage.setItem(FREE_AUDIT_STORAGE_KEY, nextCount.toString());
+          return nextCount;
+        });
+      }
     } catch (error) {
       console.error('Audit failed:', error);
     } finally {
@@ -275,7 +295,7 @@ export default function SiteAudit() {
             </div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || freeAuditLimitReached}
               className="btn-lime flex items-center justify-center gap-2 min-w-[160px] disabled:opacity-50"
             >
               {isLoading ? (
@@ -291,6 +311,13 @@ export default function SiteAudit() {
               )}
             </button>
           </form>
+          <p className="mt-3 text-sm text-text-secondary">
+            {isPro
+              ? 'Pro plan active: unlimited audits enabled.'
+              : freeAuditLimitReached
+                ? 'Free plan limit reached. Upgrade to Pro for unlimited audits.'
+                : `Free plan: ${freeAuditsRemaining} audit${freeAuditsRemaining === 1 ? '' : 's'} remaining before Pro is required.`}
+          </p>
         </div>
 
         {/* Results */}

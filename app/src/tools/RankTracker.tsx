@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { 
   TrendingUp, Search, Plus, ArrowUpRight, ArrowDownRight, 
   Minus, Target, Download, Trash2,
   Globe
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
+import ProGate from '@/components/ProGate';
+import { AuthContext } from '@/contexts/app-context';
 import { getRankData } from '@/utils/seoAnalyzer';
 import type { RankData } from '@/types';
 
 export default function RankTracker() {
+  const { isPro } = useContext(AuthContext);
   const [keyword, setKeyword] = useState('');
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +75,8 @@ export default function RankTracker() {
 
   return (
     <Layout title="Rank Tracker">
-      <div className="space-y-6">
+      <ProGate isPro={isPro}>
+        <div className="space-y-6">
         {/* Add Keyword Section */}
         <div className="bg-dark-light border border-white/5 rounded-2xl p-6">
           <form onSubmit={handleAddKeyword} className="flex flex-col md:flex-row gap-4">
@@ -332,7 +336,8 @@ export default function RankTracker() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </ProGate>
     </Layout>
   );
 }

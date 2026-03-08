@@ -1,14 +1,17 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { 
   Link2, Globe, ArrowUpRight, 
   ExternalLink, TrendingUp, TrendingDown,
   Shield, Target, BarChart3
 } from 'lucide-react';
 import Layout from '@/components/shared/Layout';
+import ProGate from '@/components/ProGate';
+import { AuthContext } from '@/contexts/app-context';
 import { getBacklinkData } from '@/utils/seoAnalyzer';
 import type { BacklinkData } from '@/types';
 
 export default function BacklinkAnalyzer() {
+  const { isPro } = useContext(AuthContext);
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState<BacklinkData | null>(null);
@@ -37,7 +40,8 @@ export default function BacklinkAnalyzer() {
 
   return (
     <Layout title="Backlink Analyzer">
-      <div className="space-y-6">
+      <ProGate isPro={isPro}>
+        <div className="space-y-6">
         {/* Input Section */}
         <div className="bg-dark-light border border-white/5 rounded-2xl p-6">
           <form onSubmit={handleAnalyze} className="flex flex-col md:flex-row gap-4">
@@ -329,7 +333,8 @@ export default function BacklinkAnalyzer() {
             </div>
           </div>
         )}
-      </div>
+        </div>
+      </ProGate>
     </Layout>
   );
 }

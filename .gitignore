@@ -9,5 +9,3 @@ coverage
 tmp
 .tmp
 *.tsbuildinfo
-.agents/
-.vscode/

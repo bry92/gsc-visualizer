@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "vite: dev",
+      "type": "shell",
+      "command": "npm run dev -- --host localhost",
+      "options": {
+        "cwd": "${workspaceFolder}/app"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "custom",
+        "fileLocation": [
+          "relative",
+          "${workspaceFolder}/app"
+        ],
+        "pattern": {
+          "regexp": "^(.*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "message": 5
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*>\\s+my-app@",
+          "endsPattern": "Local:\\s+http://localhost:5173/?"
+        }
+      }
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Search, BarChart2, Key, Link2, Users, TrendingUp, 
@@ -6,6 +6,7 @@ import {
   Settings, Bell, User
 } from 'lucide-react';
 import { Link as RouterLink } from 'react-router-dom';
+import { AuthContext } from '@/contexts/app-context';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,6 +33,14 @@ export default function Layout({ children, title }: LayoutProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout, userEmail } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    void logout();
+    setProfileOpen(false);
+    setSidebarOpen(false);
+    navigate('/login');
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -97,7 +106,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <span className="font-medium">Settings</span>
           </RouterLink>
           <button 
-            onClick={() => navigate('/')}
+            onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 w-full text-text-secondary hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
           >
             <LogOut className="w-5 h-5" />
@@ -145,7 +154,7 @@ export default function Layout({ children, title }: LayoutProps) {
                 <div className="absolute right-0 top-full mt-2 w-48 bg-dark-light border border-white/10 rounded-xl shadow-card overflow-hidden z-50">
                   <div className="p-4 border-b border-white/5">
                     <p className="text-text-primary font-medium">Demo User</p>
-                    <p className="text-text-secondary text-sm">user@example.com</p>
+                    <p className="text-text-secondary text-sm">{userEmail ?? 'user@example.com'}</p>
                   </div>
                   <RouterLink
                     to="/settings"
@@ -156,7 +165,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     <span className="w-full text-left">Settings</span>
                   </RouterLink>
                   <button 
-                    onClick={() => navigate('/')}
+                    onClick={handleLogout}
                     className="w-full px-4 py-3 text-left text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2"
                   >
                     <LogOut className="w-4 h-4" />
