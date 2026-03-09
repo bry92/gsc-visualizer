@@ -1,5 +1,6 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -27,57 +28,38 @@ import Page from './pages/Page';
 import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
-import { firebaseAuth, isFirebaseConfigured } from './lib/firebase';
-import { applySeo } from './utils/seo';
+import { auth, isFirebaseConfigured } from './lib/firebase';
 import './App.css';
 
-const ACCOUNT_PLAN_STORAGE_KEY = 'seo-pro-plan';
-const LOCAL_AUTH_STORAGE_KEY = 'seo-pro-local-auth';
-
-type LocalAuthSession = {
-  email: string;
-  id: string;
-};
-
-function readLocalAuthSession(): LocalAuthSession | null {
-  if (typeof window === 'undefined') return null;
-
-  const raw = window.localStorage.getItem(LOCAL_AUTH_STORAGE_KEY);
-  if (!raw) return null;
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<LocalAuthSession>;
-    if (!parsed.email || !parsed.id) {
-      return null;
-    }
-    return {
-      email: parsed.email,
-      id: parsed.id,
+declare global {
+  interface Window {
+    AssistLoopWidget?: {
+      init: (options: { agentId: string }) => void;
     };
-  } catch {
-    return null;
+    __assistLoopInitialized?: boolean;
   }
 }
 
-function saveLocalAuthSession(email: string) {
-  if (typeof window === 'undefined') return;
+const ASSISTLOOP_AGENT_ID = import.meta.env.VITE_ASSISTLOOP_AGENT_ID;
+const ASSISTLOOP_SCRIPT_ID = 'assistloop-widget-script';
 
-  const session: LocalAuthSession = {
-    email,
-    id: `local-${email}`,
-  };
-  window.localStorage.setItem(LOCAL_AUTH_STORAGE_KEY, JSON.stringify(session));
-}
-
-function clearLocalAuthSession() {
-  if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(LOCAL_AUTH_STORAGE_KEY);
-}
-
-function isAuthConfigurationError(error: unknown): boolean {
-  const code = (error as FirebaseError | { code?: string })?.code;
-  return code === 'auth/configuration-not-found';
-}
+const ACCOUNT_PLAN_STORAGE_KEY = 'seo-pro-plan';
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const SiteAudit = lazy(() => import('./tools/SiteAudit'));
+const KeywordResearch = lazy(() => import('./tools/KeywordResearch'));
+const BacklinkAnalyzer = lazy(() => import('./tools/BacklinkAnalyzer'));
+const CompetitorAnalysis = lazy(() => import('./tools/CompetitorAnalysis'));
+const RankTracker = lazy(() => import('./tools/RankTracker'));
+const SiteHealth = lazy(() => import('./tools/SiteHealth'));
+const Reports = lazy(() => import('./tools/Reports'));
+const GSCDataVisualizer = lazy(() => import('./tools/GSCDataVisualizer'));
+const CTROptimizer = lazy(() => import('./tools/CTROptimizer'));
+const QueryIntentClassifier = lazy(() => import('./tools/QueryIntentClassifier'));
+const IntentReshaper = lazy(() => import('./tools/IntentReshaper'));
+const Comments = lazy(() => import('./pages/Comments'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 function getStoredPlan(): AccountPlan {
   if (typeof window === 'undefined') return 'free';
@@ -106,23 +88,56 @@ function App() {
   const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
-      setAuthLoading(false);
+    if (!ASSISTLOOP_AGENT_ID) {
       return;
     }
 
-    const unsub = onAuthStateChanged(firebaseAuth, (user) => {
+    const initWidget = () => {
+      if (!window.AssistLoopWidget || window.__assistLoopInitialized) {
+        return;
+      }
+
+      window.AssistLoopWidget.init({
+        agentId: ASSISTLOOP_AGENT_ID,
+      });
+      window.__assistLoopInitialized = true;
+    };
+
+    const existingScript = document.getElementById(ASSISTLOOP_SCRIPT_ID) as HTMLScriptElement | null;
+    if (existingScript) {
+      if (window.AssistLoopWidget) {
+        initWidget();
+      } else {
+        existingScript.addEventListener('load', initWidget);
+      }
+
+      return () => existingScript.removeEventListener('load', initWidget);
+    }
+
+    const script = document.createElement('script');
+    script.id = ASSISTLOOP_SCRIPT_ID;
+    script.src = 'https://assistloop.ai/assistloop-widget.js';
+    script.async = true;
+    script.addEventListener('load', initWidget);
+    document.head.appendChild(script);
+
+    return () => script.removeEventListener('load', initWidget);
+  }, []);
+
+  useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(Boolean(user));
       setUserId(user?.uid ?? null);
       setUserEmail(user?.email ?? null);
       setAuthLoading(false);
     });
-    return () => unsub();
-  }, [isUsingLocalAuth]);
 
-  useEffect(() => {
-    applySeo(location.pathname);
-  }, [location.pathname]);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -152,68 +167,28 @@ function App() {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
-      setIsUsingLocalAuth(true);
-      saveLocalAuthSession(email);
-      setIsAuthenticated(true);
-      setUserEmail(email);
-      setUserId(`local-${email}`);
-      return;
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
 
-    try {
-      await signInWithEmailAndPassword(firebaseAuth, email, password);
-    } catch (error) {
-      if (isAuthConfigurationError(error)) {
-        setIsUsingLocalAuth(true);
-        saveLocalAuthSession(email);
-        setIsAuthenticated(true);
-        setUserEmail(email);
-        setUserId(`local-${email}`);
-        return;
-      }
-      throw error;
-    }
-  }, [isUsingLocalAuth]);
+    await signInWithEmailAndPassword(auth, email, password);
+  }, []);
 
   const register = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth || isUsingLocalAuth) {
-      setIsUsingLocalAuth(true);
-      saveLocalAuthSession(email);
-      setIsAuthenticated(true);
-      setUserEmail(email);
-      setUserId(`local-${email}`);
-      return;
+    if (!isFirebaseConfigured || !auth) {
+      throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
 
-    try {
-      await createUserWithEmailAndPassword(firebaseAuth, email, password);
-    } catch (error) {
-      if (isAuthConfigurationError(error)) {
-        setIsUsingLocalAuth(true);
-        saveLocalAuthSession(email);
-        setIsAuthenticated(true);
-        setUserEmail(email);
-        setUserId(`local-${email}`);
-        return;
-      }
-      throw error;
-    }
-  }, [isUsingLocalAuth]);
+    await createUserWithEmailAndPassword(auth, email, password);
+  }, []);
 
   const logout = useCallback(async () => {
-    clearLocalAuthSession();
-
-    if (isUsingLocalAuth || !firebaseAuth) {
-      setIsUsingLocalAuth(false);
-      setIsAuthenticated(false);
-      setUserEmail(null);
-      setUserId(null);
+    if (!isFirebaseConfigured || !auth) {
       return;
     }
 
-    await signOut(firebaseAuth);
-  }, [isUsingLocalAuth]);
+    await signOut(auth);
+  }, []);
 
   const setUserPlan = useCallback((plan: AccountPlan) => {
     setUserPlanState(plan);
@@ -428,3 +403,4 @@ function FullScreenLoading() {
 }
 
 export default App;
+
