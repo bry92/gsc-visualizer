@@ -9,3 +9,6 @@ coverage
 tmp
 .tmp
 *.tsbuildinfo
+
+.vercel
+gsc-visualizer-*.zip
