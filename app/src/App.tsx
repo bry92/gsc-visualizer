@@ -7,24 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import type { FirebaseError } from 'firebase/app';
-import { Analytics } from '@vercel/analytics/react';
-import LandingPage from './pages/LandingPage';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import SiteAudit from './tools/SiteAudit';
-import KeywordResearch from './tools/KeywordResearch';
-import BacklinkAnalyzer from './tools/BacklinkAnalyzer';
-import CompetitorAnalysis from './tools/CompetitorAnalysis';
-import RankTracker from './tools/RankTracker';
-import SiteHealth from './tools/SiteHealth';
-import Reports from './tools/Reports';
-import GSCDataVisualizer from './tools/GSCDataVisualizer';
-import CTROptimizer from './tools/CTROptimizer';
-import QueryIntentClassifier from './tools/QueryIntentClassifier';
-import IntentReshaper from './tools/IntentReshaper';
-import Settings from './pages/Settings';
-import Page from './pages/Page';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
@@ -73,18 +56,15 @@ function getStoredPlan(): AccountPlan {
 }
 
 function App() {
-  const location = useLocation();
-  const localSession = readLocalAuthSession();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [lastAudit, setLastAudit] = useState<SEOAuditResult | null>(null);
   const [auditHistory, setAuditHistory] = useState<SEOAuditResult[]>([]);
   const [gscRows, setGscRows] = useState<GSCPerformanceRow[] | null>(null);
   const [gscSource, setGscSource] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(localSession?.email ?? null);
-  const [userId, setUserId] = useState<string | null>(localSession?.id ?? null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [userPlan, setUserPlanState] = useState<AccountPlan>(() => getStoredPlan());
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(Boolean(localSession));
-  const [isUsingLocalAuth, setIsUsingLocalAuth] = useState<boolean>(Boolean(localSession));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
@@ -237,136 +217,137 @@ function App() {
         <GSCContext.Provider value={gscContextValue}>
           <AuthContext.Provider value={authContextValue}>
             <div className={`min-h-screen ${isDarkMode ? 'bg-dark' : 'bg-white'}`}>
-              <Analytics />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route
-                  path="/login"
-                  element={
-                    authLoading ? (
-                      <FullScreenLoading />
-                    ) : isAuthenticated ? (
-                      <Navigate to="/dashboard" replace />
-                    ) : (
-                      <Login />
-                    )
-                  }
-                />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/audit"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <SiteAudit />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/keywords"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <KeywordResearch />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/backlinks"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <BacklinkAnalyzer />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/competitors"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <CompetitorAnalysis />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/rank-tracker"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <RankTracker />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/site-health"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <SiteHealth />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/reports"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <Reports />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/gsc-visualizer"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <GSCDataVisualizer />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/ctr-optimizer"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <CTROptimizer />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/intent-classifier"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <QueryIntentClassifier />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/tools/intent-reshaper"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <IntentReshaper />
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route
-                  path="/todos"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <Page />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+              <Suspense fallback={<FullScreenLoading />}>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route
+                    path="/login"
+                    element={
+                      authLoading ? (
+                        <FullScreenLoading />
+                      ) : isAuthenticated ? (
+                        <Navigate to="/dashboard" replace />
+                      ) : (
+                        <Login />
+                      )
+                    }
+                  />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/audit"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <SiteAudit />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/keywords"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <KeywordResearch />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/backlinks"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <BacklinkAnalyzer />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/competitors"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <CompetitorAnalysis />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/rank-tracker"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <RankTracker />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/site-health"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <SiteHealth />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/reports"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <Reports />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/gsc-visualizer"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <GSCDataVisualizer />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/ctr-optimizer"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <CTROptimizer />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/intent-classifier"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <QueryIntentClassifier />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/intent-reshaper"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <IntentReshaper />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tools/aurora-comments"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <Comments />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute isAuthenticated={isAuthenticated} authLoading={authLoading}>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+              <SpeedInsights />
             </div>
           </AuthContext.Provider>
         </GSCContext.Provider>
