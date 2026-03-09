@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   createUserWithEmailAndPassword,
@@ -26,10 +26,38 @@ import Settings from './pages/Settings';
 import type { GSCPerformanceRow, SEOAuditResult } from './types';
 import type { AccountPlan } from './contexts/app-context';
 import { AuditContext, AuthContext, GSCContext, ThemeContext } from './contexts/app-context';
-import { firebaseAuth, isFirebaseConfigured } from './lib/firebase';
+import { auth, isFirebaseConfigured } from './lib/firebase';
 import './App.css';
 
+declare global {
+  interface Window {
+    AssistLoopWidget?: {
+      init: (options: { agentId: string }) => void;
+    };
+    __assistLoopInitialized?: boolean;
+  }
+}
+
+const ASSISTLOOP_AGENT_ID = import.meta.env.VITE_ASSISTLOOP_AGENT_ID;
+const ASSISTLOOP_SCRIPT_ID = 'assistloop-widget-script';
+
 const ACCOUNT_PLAN_STORAGE_KEY = 'seo-pro-plan';
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const Login = lazy(() => import('./pages/Login'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const SiteAudit = lazy(() => import('./tools/SiteAudit'));
+const KeywordResearch = lazy(() => import('./tools/KeywordResearch'));
+const BacklinkAnalyzer = lazy(() => import('./tools/BacklinkAnalyzer'));
+const CompetitorAnalysis = lazy(() => import('./tools/CompetitorAnalysis'));
+const RankTracker = lazy(() => import('./tools/RankTracker'));
+const SiteHealth = lazy(() => import('./tools/SiteHealth'));
+const Reports = lazy(() => import('./tools/Reports'));
+const GSCDataVisualizer = lazy(() => import('./tools/GSCDataVisualizer'));
+const CTROptimizer = lazy(() => import('./tools/CTROptimizer'));
+const QueryIntentClassifier = lazy(() => import('./tools/QueryIntentClassifier'));
+const IntentReshaper = lazy(() => import('./tools/IntentReshaper'));
+const Comments = lazy(() => import('./pages/Comments'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 function getStoredPlan(): AccountPlan {
   if (typeof window === 'undefined') return 'free';
@@ -55,15 +83,55 @@ function App() {
   const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !firebaseAuth) return;
+    if (!ASSISTLOOP_AGENT_ID) {
+      return;
+    }
 
-    const unsub = onAuthStateChanged(firebaseAuth, (user) => {
+    const initWidget = () => {
+      if (!window.AssistLoopWidget || window.__assistLoopInitialized) {
+        return;
+      }
+
+      window.AssistLoopWidget.init({
+        agentId: ASSISTLOOP_AGENT_ID,
+      });
+      window.__assistLoopInitialized = true;
+    };
+
+    const existingScript = document.getElementById(ASSISTLOOP_SCRIPT_ID) as HTMLScriptElement | null;
+    if (existingScript) {
+      if (window.AssistLoopWidget) {
+        initWidget();
+      } else {
+        existingScript.addEventListener('load', initWidget);
+      }
+
+      return () => existingScript.removeEventListener('load', initWidget);
+    }
+
+    const script = document.createElement('script');
+    script.id = ASSISTLOOP_SCRIPT_ID;
+    script.src = 'https://assistloop.ai/assistloop-widget.js';
+    script.async = true;
+    script.addEventListener('load', initWidget);
+    document.head.appendChild(script);
+
+    return () => script.removeEventListener('load', initWidget);
+  }, []);
+
+  useEffect(() => {
+    if (!isFirebaseConfigured || !auth) {
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(Boolean(user));
       setUserId(user?.uid ?? null);
       setUserEmail(user?.email ?? null);
       setAuthLoading(false);
     });
-    return () => unsub();
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -94,22 +162,27 @@ function App() {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth) {
+    if (!isFirebaseConfigured || !auth) {
       throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
-    await signInWithEmailAndPassword(firebaseAuth, email, password);
+
+    await signInWithEmailAndPassword(auth, email, password);
   }, []);
 
   const register = useCallback(async (email: string, password: string) => {
-    if (!isFirebaseConfigured || !firebaseAuth) {
+    if (!isFirebaseConfigured || !auth) {
       throw new Error('Firebase Auth is not configured. Set VITE_FIREBASE_* env vars.');
     }
-    await createUserWithEmailAndPassword(firebaseAuth, email, password);
+
+    await createUserWithEmailAndPassword(auth, email, password);
   }, []);
 
   const logout = useCallback(async () => {
-    if (!firebaseAuth) return;
-    await signOut(firebaseAuth);
+    if (!isFirebaseConfigured || !auth) {
+      return;
+    }
+
+    await signOut(auth);
   }, []);
 
   const setUserPlan = useCallback((plan: AccountPlan) => {
@@ -316,3 +389,4 @@ function FullScreenLoading() {
 }
 
 export default App;
+
